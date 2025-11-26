@@ -1,0 +1,44 @@
+NOVA AI Core: Architecture Overview
+
+This document outlines the internal structure of the nova-ai-core repository, focusing on separation of concerns for maximum scalability and maintainability.
+
+Repository Layout
+
+nova-ai-core/
+├── src/
+│   ├── frontend/        (React/Standalone Chat App UI - Phase 4)
+│   │   ├── components/
+│   │   ├── styles/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   └── backend/         (Node/Express API - Core Logic)
+│       ├── routes/
+│       │   └── chat.js
+│       ├── controllers/
+│       │   └── novaController.js (Handles request parsing, calls modules, formats response)
+│       └── utils/
+│           ├── modelRouter.js     (CRITICAL: LLM Abstraction Layer)
+│           └── systemPrompt.js    (NOVA's locked-in persona and rules)
+├── public/
+│   └── index.html       (Used for standalone deployment test harness)
+└── docs/
+    ├── NOVA_PERSONA.md
+    └── API_STRUCTURE.md
+    └── ARCHITECTURE_OVERVIEW.md (This file)
+
+
+Critical Components
+
+1. Model Independence Layer (/backend/utils/modelRouter.js)
+
+This is the most critical file for future-proofing. It encapsulates all calls to external LLM providers (Gemini, GPT, Claude).
+
+Function: Allows the developer to change the active LLM engine (e.g., useModel("gemini") to useModel("gpt")) by modifying a single line of configuration, preventing system-wide rewrites when technology evolves.
+
+2. System Prompt Layer (/backend/utils/systemPrompt.js)
+
+This file holds the comprehensive system instruction that defines NOVA's personality, mission, and rules. By centralizing this, we ensure consistent tone and behavior across all API calls and modules.
+
+3. Controller Logic (/backend/controllers/novaController.js)
+
+This controller acts as the brain router. It receives user requests, determines which "Brains Module" (A, B, or C) is needed, constructs the final prompt including the system instructions, calls the modelRouter, and formats the raw LLM output into a clean JSON response for the frontend.
